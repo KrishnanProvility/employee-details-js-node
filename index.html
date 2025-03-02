@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Details</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="header">
+        <div class="title">
+            <h1>Employee Details</h1>
+        </div>
+    </div>
+    <div class="button-box">
+        <p>Click Add button to add employee details ==> </p>
+        <button class="add-btn" onclick="showForm()">Add</button>
+    </div>
+    <div class="head-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Emp-Id</th>
+                    <th>Emp-Name</th>
+                    <th>Emp-Department</th>
+                    <th>Email</th>
+                    <th>Contact-Number</th>
+                    <th>Address</th>
+                    <th>Salary</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="employeeTableBody">
+                <tr>
+                    <td colspan="8">No data available</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="hidenForm" style="display: none;">
+        <form class="inputForm" onsubmit="retriveTable(event)">
+            <h2>Employee Details Form</h2>
+            <p>
+                <label for="empName">Name</label>
+                <input type="text" id="empName" placeholder="Enter Your name" required><br>
+            </p>
+            <p>
+                <label for="department">Department</label>
+                <select name="department" required>
+                    <option value="HR">HR</option>
+                    <option value="Developer">Developer</option>
+                    <option value="Tester">Tester</option>
+                    <option value="Manager">Manager</option>
+                </select>
+            </p>
+            <p>
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Enter Your email" required><br>
+            </p>
+            <p>
+                <label for="contact">Contact-Number</label>
+                <input type="number" id="contact" placeholder="Enter Your number" min="1000000000" max="9999999999" required><br>
+            </p>
+            <p>
+                <label for="address">Address</label>
+                <textarea name="address" id="address" required></textarea><br>
+            </p>
+            <p>
+                <label for="salary">Salary</label>
+                <input type="number" id="salary" placeholder="Enter Your salary" required><br>
+            </p>
+            <p>
+                <button type="submit" id="form-submit-btn">Submit</button>
+            </p>
+        </form>
+    </div>
+    <script src="./script.js"></script>
+</body>
+</html>
