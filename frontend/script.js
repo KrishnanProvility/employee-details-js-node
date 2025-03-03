@@ -1,4 +1,4 @@
-const apiUrl = "http://localhost:3000/employees";
+const apiUrl = "http://localhost:5000/employees";
 let editingId = null;
 
 // Show Employee Form
@@ -27,16 +27,15 @@ function showTable() {
 
 // Load Employee Data
 async function loadTableData() {
-  const response = await fetch(apiUrl);
-  const employees = await response.json();
-
+  const employees = await fetchData();
+  console.log(employees);
   const tableBody = document.getElementById("employeeTableBody");
   if (!tableBody) {
     console.error("Table body element not found!");
     return;
   }
 
-  tableBody.innerHTML = ""; // Clear table before updating
+  tableBody.innerHTML = ""; 
 
   if (employees.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="8">No data available</td></tr>`;
@@ -78,31 +77,33 @@ async function retriveTable(event) {
   if (editingId) {
     console.log("Editing ID:", editingId);
     console.log("Sending Data:", empData);
+    try {
+      const res = await fetch(`http://localhost:5000/employees/${editingId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(empData),
+      });
 
-    const putUrl = `http://localhost:3000/employees/${editingId}`;
-
-    await fetch(putUrl, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(empData), // Convert to JSON string
-    }).then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    });
+      const data = await res.json();
+      console.log("Employee Updated:", data);
+      return data;
+    } catch (err) {
+      console.error("Error updating employee:", err);
+    }
   } else {
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    let nextId =
-    data.length +1;
-    empData.id = nextId;
-
-    await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(empData),
-    });
+    try {
+      await fetch("http://localhost:5000/employees", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(empData),
+      });
+    } catch (err) {
+      console.error("Error:", err);
+    }
   }
 
   loadTableData();
@@ -111,15 +112,17 @@ async function retriveTable(event) {
 
 // Edit Employee
 async function editTable(id) {
-  const response = await fetch(`${apiUrl}?id=${id}`);
+    const response = await fetch(`http://localhost:5000/employees/${id}`);
+    if (!response.ok) {
+        throw new Error("Employee not found");
+    }
   const emp = await response.json();
-
-  document.getElementById("empName").value = emp[0].name;
-  document.querySelector("select[name='department']").value = emp[0].department;
-  document.getElementById("email").value = emp[0].email;
-  document.getElementById("contact").value = emp[0].contact;
-  document.getElementById("address").value = emp[0].address;
-  document.getElementById("salary").value = emp[0].salary;
+  document.getElementById("empName").value = emp.name;
+  document.querySelector("select[name='department']").value = emp.department;
+  document.getElementById("email").value = emp.email;
+  document.getElementById("contact").value = emp.contact;
+  document.getElementById("address").value = emp.address;
+  document.getElementById("salary").value = emp.salary;
 
   editingId = id;
   document.getElementById("form-submit-btn").innerText = "Update";
@@ -129,9 +132,21 @@ async function editTable(id) {
 
 // Delete Employee
 async function deleteTable(id) {
-  await fetch(`${apiUrl}/${id}`, { method: "DELETE" });
+ await fetch(`http://localhost:5000/employees/${id}`, {
+    method: "DELETE"
+});
   loadTableData();
 }
 
 // Load Employee Data on Page Load
 window.onload = loadTableData;
+
+async function fetchData() {
+  try {
+    const res = await fetch("http://localhost:5000/employees");
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("Error:", err);
+  }
+}
