@@ -1,10 +1,4 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+const Hapi = require('@hapi/hapi');
 
 let employees = [
     {
@@ -27,54 +21,88 @@ let employees = [
     }
 ];
 
+const init = async () => {
+    const server = Hapi.server({
+        port: 5000,
+        host: 'localhost',
+        routes: {
+            cors: true // Enables CORS globally
+        }
+    });
 
-app.get("/employees", (req, res) => {
-    res.json(employees);
-});
-
-app.post("/employees", (req, res) => {
-    const newEmployee = req.body;
-    newEmployee.id = String(employees.length + 1); // Auto-generate ID
-    employees.push(newEmployee);
-    res.status(201).json(newEmployee);
-});
-
-app.get("/employees/:id", (req, res) => {
-    const employee = employees.find(emp => emp.id === req.params.id);
-    if (employee) {
-        res.json(employee);
-    } else {
-        res.status(404).json({ message: "Employee not found" });
-    }
-});
-
-app.put("/employees/:id", (req, res) => {
-    const { id } = req.params;
-    const updatedData = req.body;
-    const value =employees
-    const index = employees.findIndex(emp => emp.id === id);
-
-    if (index !== -1) {
-        employees[index] = { ...employees[index], ...updatedData };
-        res.json(employees[index]);
-    } else {
-        res.status(404).json({ message: "Employee not found" });
-    }
-});
+ 
+    server.route({
+        method: 'GET',
+        path: '/employees',
+        handler: (request, h) => {
+            return employees;
+        }
+    });
 
 
-app.delete("/employees/:id", (req, res) => {
-    const { id } = req.params;
-    const index = employees.findIndex(emp => emp.id === id);
+    server.route({
+        method: 'POST',
+        path: '/employees',
+        handler: (request, h) => {
+            const newEmployee = request.payload;
+            newEmployee.id = String(employees.length + 1);
+            employees.push(newEmployee);
+            return h.response(newEmployee).code(201);
+        }
+    });
 
-    if (index !== -1) {
-        employees.splice(index, 1);
-        res.json({ message: "Employee deleted successfully" });
-    } else {
-        res.status(404).json({ message: "Employee not found" });
-    }
-});
+   
+    server.route({
+        method: 'GET',
+        path: '/employees/{id}',
+        handler: (request, h) => {
+            const employee = employees.find(emp => emp.id === request.params.id);
+            if (employee) {
+                return employee;
+            } else {
+                return h.response({ message: "Employee not found" }).code(404);
+            }
+        }
+    });
+
+    // Update employee by ID
+    server.route({
+        method: 'PUT',
+        path: '/employees/{id}',
+        handler: (request, h) => {
+            const { id } = request.params;
+            const updatedData = request.payload;
+            const index = employees.findIndex(emp => emp.id === id);
+
+            if (index !== -1) {
+                employees[index] = { ...employees[index], ...updatedData };
+                return employees[index];
+            } else {
+                return h.response({ message: "Employee not found" }).code(404);
+            }
+        }
+    });
+
+    // Delete employee by ID
+    server.route({
+        method: 'DELETE',
+        path: '/employees/{id}',
+        handler: (request, h) => {
+            const { id } = request.params;
+            const index = employees.findIndex(emp => emp.id === id);
+
+            if (index !== -1) {
+                employees.splice(index, 1);
+                return { message: "Employee deleted successfully" };
+            } else {
+                return h.response({ message: "Employee not found" }).code(404);
+            }
+        }
+    });
+
+    await server.start();
+    console.log('Server running on %s', server.info.uri);
+};
 
 
-const PORT = 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+init();

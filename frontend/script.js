@@ -27,8 +27,14 @@ function showTable() {
 
 // Load Employee Data
 async function loadTableData() {
-  const employees = await fetchData();
-  console.log(employees);
+  let employees;
+  try {
+    const res = await fetch("http://localhost:5000/employees");
+    employees = await res.json();
+  } catch (err) {
+    console.error("Error:", err);
+  }
+
   const tableBody = document.getElementById("employeeTableBody");
   if (!tableBody) {
     console.error("Table body element not found!");
@@ -65,7 +71,6 @@ async function retriveTable(event) {
   event.preventDefault();
 
   const empData = {
-    id: editingId,
     name: document.getElementById("empName").value,
     department: document.querySelector("select[name='department']").value,
     email: document.getElementById("email").value,
@@ -75,20 +80,14 @@ async function retriveTable(event) {
   };
 
   if (editingId) {
-    console.log("Editing ID:", editingId);
-    console.log("Sending Data:", empData);
     try {
-      const res = await fetch(`http://localhost:5000/employees/${editingId}`, {
+      const res = await fetch(`${apiUrl}/${editingId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(empData),
       });
-
-      const data = await res.json();
-      console.log("Employee Updated:", data);
-      return data;
     } catch (err) {
       console.error("Error updating employee:", err);
     }
@@ -102,17 +101,18 @@ async function retriveTable(event) {
         body: JSON.stringify(empData),
       });
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Error adding employee:", err);
     }
   }
 
+  editingId = null;   
   loadTableData();
   showTable();
 }
 
 // Edit Employee
 async function editTable(id) {
-    const response = await fetch(`http://localhost:5000/employees/${id}`);
+    const response = await fetch(`${apiUrl}/${id}`);
     if (!response.ok) {
         throw new Error("Employee not found");
     }
@@ -126,27 +126,17 @@ async function editTable(id) {
 
   editingId = id;
   document.getElementById("form-submit-btn").innerText = "Update";
-
   showForm(id);
 }
 
 // Delete Employee
 async function deleteTable(id) {
- await fetch(`http://localhost:5000/employees/${id}`, {
+ await fetch(`${apiUrl}/${id}`, {
     method: "DELETE"
 });
   loadTableData();
 }
 
-// Load Employee Data on Page Load
 window.onload = loadTableData;
 
-async function fetchData() {
-  try {
-    const res = await fetch("http://localhost:5000/employees");
-    const data = await res.json();
-    return data;
-  } catch (err) {
-    console.error("Error:", err);
-  }
-}
+
